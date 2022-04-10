@@ -1,40 +1,36 @@
-import "./App.css";
-import React, { Component, useEffect, useState } from "react";
-import {
-  Route,
-  BrowserRouter as Router,
-  Switch,
-  Redirect,
-  Routes,
-} from "react-router-dom";
-import Home from "./pages/Home";
-import Chat from "./pages/Chat";
-import Signup from "./pages/Signup";
-import Login from "./pages/Login";
-import { auth } from "./services/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import PrivateRoute from "./components/PrivateRute"
+import React,{useState} from "react";
+import useChat from "./components/useChat";
+import { db } from "./services/firebase";
+
+
 
 function App() {
-  const [isAuth, setIsAuth] = useState(false);
+  const [message, setMessage] = useState("");
+  const { load, messages, error } = useChat();
+  const sendMessages = (e) => {
+    e.preventDefault()
+    
+    db.collection('messages').add({
+      timestamp: Date.now(),
+      message
+    })
+  }
 
-  useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsAuth(true);
-      } else {
-        setIsAuth(false);
-      }
-    });
-  }, [isAuth]);
-
-  return(
-    <Router>
-      <Routes>
-        <Route path="" element={<Login isAuth={isAuth} setIsAuth={setIsAuth}/>} />
-      </Routes>
-    </Router>
-  )
+  return (
+    <div className="App">
+      <div className="App-header">
+        <p>Escribir mensaje...</p>
+        <form>
+          <input value={message} onChange={(e) => setMessage(e.target.value)} />
+          <button type="submit" onclick = {sendMessages}>Enviar mensaje</button>
+        </form>
+        <ul>
+          {messages.map(m => 
+            <li key={m.id}>{m.message}</li>)}
+        </ul>
+      </div>
+    </div>
+  );
 }
 
 export default App;
